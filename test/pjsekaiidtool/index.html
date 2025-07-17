@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プロセカプレイヤーid変換ツール</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>プロセカ プレイヤーID 変換ツール</h1>
+
+    <div class="section">
+      <h2>初ログイン日時 → プレイヤーID</h2>
+      <label for="loginTime">初ログイン日時 (例: 2020-09-16 10:30:45):</label>
+      <input type="text" id="loginTime" placeholder="YYYY-MM-DD HH:MM:SS">
+      <button onclick="generatePlayerId()">プレイヤーIDを生成</button>
+      <p id="generatedId"></p>
+      <p class="info-text">※ 年月日と時間は必ず "YYYY-MM-DD HH:MM:SS" 形式で入力してください。</p>
+    </div>
+
+    <div class="section">
+      <h2>プレイヤーID → 初ログイン日時</h2>
+      <label for="playerId">プレイヤーID:</label>
+      <input type="text" id="playerId">
+      <button onclick="calculateLoginTime()">初ログイン日時を計算</button>
+      <p id="calculatedTime"></p>
+    </div>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>
