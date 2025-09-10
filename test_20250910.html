@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中学理科 総合問題</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .question-box {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .option-label:hover {
+            background-color: #f9fafb;
+        }
+        .option-label input[type="radio"] {
+            margin-top: 0.2rem;
+            margin-right: 1rem;
+        }
+        .correct-answer {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+        }
+        .incorrect-answer {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+        .rationale {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            border-left: 4px solid #4b5563;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-10">
+
+    <div id="quiz-app" class="container">
+        <h1 class="text-4xl font-extrabold text-center mb-8 text-gray-800">中学理科 総合問題</h1>
+        <div id="quiz-container"></div>
+        <div id="button-container" class="mt-10 flex justify-center space-x-6">
+            <button id="submit-btn" class="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-blue-700 transition transform hover:scale-105">採点する</button>
+            <button id="reset-btn" class="bg-gray-400 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-500 transition transform hover:scale-105 hidden">やり直す</button>
+        </div>
+        <div id="results-container" class="mt-10 pt-10 border-t-2 border-gray-200 hidden">
+            <h2 class="text-3xl font-bold text-center mb-6 text-gray-700">結果</h2>
+            <div id="score" class="text-2xl text-center mb-6 font-semibold"></div>
+            <div id="review-area" class="space-y-8"></div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {"question":"図1のように、ホウセンカの花粉を10%の砂糖水の上に落としたとき、花粉から伸びてくる管の名称は何ですか？\n\n","hint":"この管は、花粉が受精するために、めしべの中を伸びていくものです。","pF":[{"text":"花粉管","Bt":true,"Lmb":"花粉から伸びて胚珠に向かう管は、花粉管と呼ばれます。"},{"text":"胚乳管","Bt":false,"Lmb":"胚乳管は、このプロセスにおける一般的な用語ではありません。"},{"text":"花糸","Bt":false,"Lmb":"花糸は、おしべの一部で花粉を生産する部分です。"},{"text":"めしべ","Bt":false,"Lmb":"めしべは花の雌しべ全体を指します。"}],"cva":0},
+            {"question":"植物の受粉後、花粉管の中を移動し、胚珠の中の卵細胞と合体する生殖細胞を何といいますか？","hint":"動物の雄の生殖細胞は「精子」と呼ばれます。植物では少し呼び方が異なります。","pF":[{"text":"精細胞","Bt":true,"Lmb":"精細胞は、花粉管の中を移動する雄の生殖細胞で、卵細胞と受精します。"},{"text":"雄核","Bt":false,"Lmb":"雄核は精細胞の核を指すことがありますが、生殖細胞そのものの名称ではありません。"},{"text":"種細胞","Bt":false,"Lmb":"種細胞という用語は植物の生殖においては一般的ではありません。"},{"text":"花粉","Bt":false,"Lmb":"花粉は、精細胞を含む粒です。"}],"cva":0},
+            {"question":"図のように、胚珠の中にある雌の生殖細胞を何といいますか？\n\n","hint":"この細胞は、受粉後の最終的な受精の相手となります。","pF":[{"text":"卵細胞","Bt":true,"Lmb":"卵細胞は、胚珠の中にある雌の生殖細胞であり、精細胞と合体して受精卵となります。"},{"text":"胚乳","Bt":false,"Lmb":"胚乳は、種子の内部にある栄養を蓄える組織です。"},{"text":"胚珠","Bt":false,"Lmb":"胚珠は、卵細胞を包んでいる構造全体を指します。"},{"text":"子房","Bt":false,"Lmb":"子房は、胚珠を包んでいる部分です。"}],"cva":0},
+            {"question":"植物の精細胞の核と卵細胞の核が合体してできる、新しい個体の元になる1つの細胞を何といいますか？","hint":"受精の結果として生まれる最初の細胞です。","pF":[{"text":"受精卵","Bt":true,"Lmb":"受精卵は、精細胞の核と卵細胞の核が合体してできる最初の細胞で、新しい個体の元となります。"},{"text":"胚","Bt":false,"Lmb":"胚は、受精卵が細胞分裂を繰り返して形成される、将来の植物体です。"},{"text":"種子","Bt":false,"Lmb":"種子は、受精卵を含む胚珠全体が発達したものです。"},{"text":"花粉","Bt":false,"Lmb":"花粉は雄の生殖細胞を含む粒です。"}],"cva":0},
+            {"question":"受粉が完了した後、花全体が枯れても、めしべの子房と胚珠は残り、それぞれ何と何に発達しますか？","hint":"私たちが普段食べている果物や野菜の実の部分が子房からでき、その中にあるタネが胚珠からできます。","pF":[{"text":"果実と種子","Bt":true,"Lmb":"子房は果実に、胚珠は種子に発達します。これは受精後の植物の変化の重要な点です。"},{"text":"種子と果実","Bt":false,"Lmb":"順番が逆です。"},{"text":"花弁とがく","Bt":false,"Lmb":"花弁やがくは受粉後に通常枯れてしまいます。"},{"text":"種子と花弁","Bt":false,"Lmb":"花弁は受粉後に枯れてしまう部分です。"}],"cva":0},
+            {"question":"カエルの生殖において、雄の生殖器でつくられる生殖細胞を何といいますか？","hint":"この細胞は、運動能力を持っており、もう一方の生殖細胞を探して泳いでいきます。","pF":[{"text":"精子","Bt":true,"Lmb":"カエルの雄の生殖細胞は、精子と呼ばれます。"},{"text":"卵","Bt":false,"Lmb":"卵は雌が産むものです。"},{"text":"胚","Bt":false,"Lmb":"胚は受精卵が成長した初期の段階の個体です。"},{"text":"受精卵","Bt":false,"Lmb":"受精卵は、精子と卵子が合体してできるものです。"}],"cva":0},
+            {"question":"カエルの雌が産む卵は、何という器官でつくられますか？","hint":"「卵」という言葉をヒントに、動物の体の器官名を考えてみましょう。","pF":[{"text":"卵巣","Bt":true,"Lmb":"卵巣は雌の生殖器官であり、卵がつくられる場所です。"},{"text":"精巣","Bt":false,"Lmb":"精巣は雄の生殖器官です。"},{"text":"子宮","Bt":false,"Lmb":"子宮は哺乳類にある生殖器官です。"},{"text":"腎臓","Bt":false,"Lmb":"腎臓は排泄器官であり、卵をつくる器官ではありません。"}],"cva":0},
+            {"question":"カエルのように、精子と卵子が体の外で合体する受精の様式を何といいますか？","hint":"「体内」と「体外」という言葉の使い分けを思い出しましょう。","pF":[{"text":"体外受精","Bt":true,"Lmb":"カエルのように、水中で体の外で受精が行われる様式は体外受精と呼ばれます。"},{"text":"体内受精","Bt":false,"Lmb":"体内受精は、体内で精子と卵子が合体する様式です。"},{"text":"有性生殖","Bt":false,"Lmb":"有性生殖は、生殖細胞が関わる生殖の様式全般を指します。"},{"text":"無性生殖","Bt":false,"Lmb":"無性生殖は、生殖細胞が関わらない生殖の様式です。"}],"cva":0},
+            {"question":"図のように、カエルの受精卵が細胞分裂を繰り返し、幼生や成体の体のつくりができていく過程全体を何といいますか？\n\n","hint":"この言葉は、受精卵から個体が形成されるまでのプロセス全体を表します。","pF":[{"text":"発生","Bt":true,"Lmb":"受精卵から新しい個体の体のつくりが完成していくまでの過程を発生といいます。"},{"text":"成長","Bt":false,"Lmb":"成長は、細胞が増えて体が大きくなることを指しますが、形ができていく過程全体ではありません。"},{"text":"細胞分裂","Bt":false,"Lmb":"細胞分裂は発生の一部分であり、発生全体を指す言葉ではありません。"},{"text":"変態","Bt":false,"Lmb":"変態は、幼生から成体へと姿を変えることを指します。"}],"cva":0},
+            {"question":"ゾウリムシやアメーバのように、親の体が分裂して新しい個体をつくる生殖の方法を何といいますか？","hint":"この生殖方法では、精子や卵子のような特別な細胞は必要ありません。","pF":[{"text":"無性生殖","Bt":true,"Lmb":"生殖細胞が関わらず、親の体の一部から新しい個体ができる生殖の様式を無性生殖といいます。"},{"text":"有性生殖","Bt":false,"Lmb":"有性生殖は、生殖細胞が関わる生殖の様式です。"},{"text":"体外受精","Bt":false,"Lmb":"体外受精は、有性生殖の中の受精の様式の一つです。"},{"text":"栄養生殖","Bt":false,"Lmb":"栄養生殖は、植物の根や茎などから新しい個体ができる無性生殖の一種です。"}],"cva":0},
+            {"question":"タマネギの根の先端の細胞分裂を観察する実験で、スライドガラスに根の先端をのせ、塩酸を落とすのは何のためですか？","hint":"この操作は、細胞が固まって観察しにくい状態を解消するために行います。","pF":[{"text":"細胞を離れやすくするため","Bt":true,"Lmb":"塩酸は細胞壁同士を結びつけている物質を溶かし、細胞をバラバラにして観察しやすくする役割があります。"},{"text":"細胞を染めるため","Bt":false,"Lmb":"細胞を染めるには染色液を使います。"},{"text":"細胞の核を溶かすため","Bt":false,"Lmb":"塩酸は細胞の核を溶かすのではなく、細胞を離れやすくするために使われます。"},{"text":"水分を与えるため","Bt":false,"Lmb":"水分を与える目的であれば、水を使います。"}],"cva":0},
+            {"question":"細胞分裂を観察する際に、核と染色体を赤く染めるために用いる染色液は何ですか？","hint":"この染色液は、酢酸に赤い色素を溶かしたものです。","pF":[{"text":"酢酸カーミン溶液","Bt":true,"Lmb":"酢酸カーミン溶液は、核や染色体を赤く染める働きがあります。"},{"text":"ヨウ素液","Bt":false,"Lmb":"ヨウ素液はデンプンを青紫色に染めるために使われます。"},{"text":"BTB溶液","Bt":false,"Lmb":"BTB溶液は水溶液の液性を調べるために使われます。"},{"text":"ベネジクト液","Bt":false,"Lmb":"ベネジクト液は糖を検出するために使われます。"}],"cva":0},
+            {"question":"細胞が分かれて2つになることによって、生物の何が増えていきますか？","hint":"この現象は、生物が大きくなるための基本的なプロセスです。","pF":[{"text":"体細胞の数","Bt":true,"Lmb":"細胞が分裂を繰り返すことで、体を構成する体細胞の数が増えていきます。"},{"text":"体温","Bt":false,"Lmb":"体温は細胞の分裂によって増えるものではありません。"},{"text":"体重","Bt":false,"Lmb":"体重は細胞の数が増える結果として増えることもありますが、直接増えるのは細胞の数です。"},{"text":"生殖細胞の数","Bt":false,"Lmb":"生殖細胞は特別な細胞分裂によって作られますが、体細胞の分裂では増えません。"}],"cva":0},
+            {"question":"雄の精巣や雌の卵巣で、生殖細胞をつくるときに行われる、染色体の数が半分になる細胞分裂を何といいますか？","hint":"この分裂によって、親の持つ染色体数が子に受け継がれたときに、元の染色体数に戻ります。","pF":[{"text":"減数分裂","Bt":true,"Lmb":"生殖細胞をつくる際に行われ、染色体数が半分になる特殊な細胞分裂を減数分裂といいます。"},{"text":"体細胞分裂","Bt":false,"Lmb":"体細胞分裂は、染色体数が変化せず、元の細胞と同じ数の染色体が新しい細胞に受け継がれます。"},{"text":"受精","Bt":false,"Lmb":"受精は、2つの生殖細胞が合体する現象です。"},{"text":"核分裂","Bt":false,"Lmb":"核分裂は、細胞の中心にある核が分裂することを指しますが、この用語では染色体数の変化を表現しません。"}],"cva":0},
+            {"question":"1つの細胞が2つに分裂するとき、もとの細胞と同じ数の染色体が新しい2つの細胞に分配される分裂を何といいますか？","hint":"この分裂は、生物の成長や傷の修復などに関わるものです。","pF":[{"text":"体細胞分裂","Bt":true,"Lmb":"体が成長するときに行われる、元の細胞と同じ数の染色体が分配される分裂を体細胞分裂といいます。"},{"text":"減数分裂","Bt":false,"Lmb":"減数分裂では染色体の数が半分になります。"},{"text":"有糸分裂","Bt":false,"Lmb":"有糸分裂は、細胞分裂の過程を顕微鏡で観察したときの名称です。"},{"text":"核分裂","Bt":false,"Lmb":"核分裂は、原子の核が分裂する現象です。"}],"cva":0},
+            {"question":"エンドウの丸い種子をつくる純系（AA）と、しわのある種子をつくる純系（aa）をかけ合わせたとき、子の代に現れる形質はどちらですか？","hint":"遺伝子Aとaのどちらが優性（優位）かを考えましょう。","pF":[{"text":"丸い種子","Bt":true,"Lmb":"この場合、丸い種子の遺伝子Aは、しわのある種子の遺伝子aに対して優性なので、子の代には丸い種子の形質が現れます。"},{"text":"しわのある種子","Bt":false,"Lmb":"しわのある種子は、遺伝子aaが揃った場合に現れる形質です。"},{"text":"丸い種子としわのある種子の両方","Bt":false,"Lmb":"子の代の遺伝子は全てAaとなり、優性の形質のみが現れます。"},{"text":"中間的な形質","Bt":false,"Lmb":"エンドウの種子の形質は、優性の法則に従うため、中間的な形質は現れません。"}],"cva":0},
+            {"question":"親の形質が子や孫の世代に伝わることを何といいますか？","hint":"これは、親の持っている特徴が、子どもに伝わることです。","pF":[{"text":"遺伝","Bt":true,"Lmb":"親から子へ形質が受け継がれることを遺伝といいます。"},{"text":"進化","Bt":false,"Lmb":"進化は、生物の形質が長い時間をかけて変化していく現象です。"},{"text":"成長","Bt":false,"Lmb":"成長は、個体が大きくなることです。"},{"text":"生殖","Bt":false,"Lmb":"生殖は、新しい個体をつくる現象です。"}],"cva":0},
+            {"question":"エンドウの丸い種子（AA）としわのある種子（aa）をかけ合わせてできた子の遺伝子の組み合わせを答えなさい。","hint":"子の遺伝子は、親の持つ遺伝子を1つずつ受け継ぐことで決まります。","pF":[{"text":"Aa","Bt":true,"Lmb":"親が作る生殖細胞はAとaのみで、この両方が結合してできる子は遺伝子Aaの組み合わせになります。"},{"text":"AA","Bt":false,"Lmb":"AAは丸い種子の親の遺伝子です。"},{"text":"aa","Bt":false,"Lmb":"aaはしわのある種子の親の遺伝子です。"},{"text":"AAとaa","Bt":false,"Lmb":"子の代には遺伝子Aaのみができます。"}],"cva":0},
+            {"question":"エンドウの丸い種子（Aa）どうしをかけ合わせてできた孫の代に、しわのある種子（aa）が現れるのはなぜですか。「分離の法則」という言葉を用いて説明しなさい。","hint":"親の持つ2つの遺伝子（Aa）が、生殖細胞を作るときにどのように分けられるかを思い出しましょう。","pF":[{"text":"分離の法則により、親の持つAとaの遺伝子が、それぞれ別の生殖細胞に分かれて入るためです。","Bt":true,"Lmb":"分離の法則により、Aaの親はAとaの生殖細胞をそれぞれ作り、これらが再結合することでaaの組み合わせが生まれます。"},{"text":"優性の法則により、Aaの組み合わせが常に丸い種子になるからです。","Bt":false,"Lmb":"優性の法則は、優性の形質が現れることを説明しますが、劣性の形質が現れることを説明するものではありません。"},{"text":"突然変異により、新しい遺伝子が偶然生まれたからです。","Bt":false,"Lmb":"突然変異は、遺伝子の変化を指しますが、この場合は既存の遺伝子の組み合わせで説明が可能です。"},{"text":"交雑が原因で、両方の形質が混じり合ったからです。","Bt":false,"Lmb":"形質は混じり合うのではなく、遺伝子として分離して受け継がれます。"}],"cva":0},
+            {"question":"遺伝子の組み合わせが同じでも、形質として現れないほうの形質を何といいますか？","hint":"この形質は、遺伝子記号で小文字を使って表されることが多いです。","pF":[{"text":"劣性の形質","Bt":true,"Lmb":"劣性の形質は、優性の遺伝子が存在しない場合にのみ現れる形質です。"},{"text":"優性の形質","Bt":false,"Lmb":"優性の形質は、遺伝子の組み合わせに1つでも含まれると現れる形質です。"},{"text":"純系","Bt":false,"Lmb":"純系は、代々同じ形質が現れる遺伝子の組み合わせを持つ個体を指します。"},{"text":"雑種","Bt":false,"Lmb":"雑種は、異なる形質を持つ純系を掛け合わせてできた個体を指します。"}],"cva":0},
+            {"question":"始祖鳥の化石は、爬虫類と鳥類の両方の特徴を併せ持っていることから、何類から何類への進化を示す重要な証拠とされていますか？","hint":"始祖鳥は、翼を持ちながら、歯や長い尾、爪のある指も持っていました。","pF":[{"text":"爬虫類から鳥類","Bt":true,"Lmb":"始祖鳥は、羽毛や翼を持つ鳥類の特徴と、骨格や歯を持つ爬虫類の特徴を併せ持っています。"},{"text":"魚類から両生類","Bt":false,"Lmb":"魚類から両生類への進化は、陸上生活への移行を示すものです。"},{"text":"両生類から爬虫類","Bt":false,"Lmb":"両生類から爬虫類への進化は、陸上生活への適応をより進めたものです。"},{"text":"鳥類から哺乳類","Bt":false,"Lmb":"鳥類と哺乳類は、それぞれ異なる系統で進化したと考えられています。"}],"cva":0},
+            {"question":"ヒトの腕、コウモリの翼、クジラの胸びれのように、現在の形や働きは異なっていても、基本的なつくりや起源が同じであると考えられる器官を何といいますか？","hint":"この言葉は、「同じ起源を持つ器官」という意味です。","pF":[{"text":"相同器官","Bt":true,"Lmb":"起源が同じで、進化の過程で異なる形や働きを持つようになった器官を相同器官といいます。"},{"text":"痕跡器官","Bt":false,"Lmb":"痕跡器官は、進化の過程で退化し、機能を失った器官を指します。"},{"text":"相似器官","Bt":false,"Lmb":"相似器官は、起源は異なるが、同じような機能を持つように進化した器官を指します。"},{"text":"退化器官","Bt":false,"Lmb":"退化器官は、痕跡器官と同義で使われることが多いです。"}],"cva":0},
+            {"question":"脊椎動物の進化の系統樹において、最も古い時代に現れたと考えられているのは何類ですか？","hint":"この生物は、水中での生活に適応しています。","pF":[{"text":"魚類","Bt":true,"Lmb":"脊椎動物は、まず水中で生活する魚類から進化したと考えられています。"},{"text":"両生類","Bt":false,"Lmb":"両生類は、魚類が進化して陸に進出したものです。"},{"text":"爬虫類","Bt":false,"Lmb":"爬虫類は、両生類から進化したと考えられています。"},{"text":"哺乳類","Bt":false,"Lmb":"哺乳類は、爬虫類から進化したと考えられています。"}],"cva":0},
+            {"question":"長い年月をかけて形質が変化し、新しい種が生まれることを何といいますか？","hint":"チャールズ・ダーウィンが提唱した、生物の歴史的な変化の考え方です。","pF":[{"text":"進化","Bt":true,"Lmb":"生物が長い年月をかけて遺伝的に変化し、新しい種が生まれる現象を進化といいます。"},{"text":"突然変異","Bt":false,"Lmb":"突然変異は、遺伝子が変化する現象で、進化の要因の一つです。"},{"text":"成長","Bt":false,"Lmb":"成長は、個体が大きくなることです。"},{"text":"生殖","Bt":false,"Lmb":"生殖は、新しい個体をつくる現象です。"}],"cva":0},
+            {"question":"生物が進化していく根本的な要因は、生物が持つ何が変化することだと考えられていますか？","hint":"親から子へ形質を伝える、設計図のようなものです。","pF":[{"text":"遺伝子","Bt":true,"Lmb":"遺伝子が変化することで形質が変わり、それが長い年月をかけて蓄積されることで進化が起こると考えられています。"},{"text":"体長","Bt":false,"Lmb":"体長の変化は、進化の結果の一つです。"},{"text":"生活環境","Bt":false,"Lmb":"生活環境の変化は、進化のきっかけとなることがありますが、根本的な要因ではありません。"},{"text":"食性","Bt":false,"Lmb":"食性の変化は、進化の結果の一つです。"}],"cva":0},
+            {"question":"物質が水に溶けて、電気を帯びた粒子（イオン）に分かれることを何といいますか？","hint":"この言葉は、「電気」と「離れる」という2つの漢字で成り立っています。","pF":[{"text":"電離","Bt":true,"Lmb":"電解質が水に溶けて陽イオンと陰イオンに分かれる現象を電離といいます。"},{"text":"中和","Bt":false,"Lmb":"中和は、酸とアルカリが混ざり合う現象です。"},{"text":"溶解","Bt":false,"Lmb":"溶解は、物質が溶媒に溶ける現象全般を指します。"},{"text":"電気分解","Bt":false,"Lmb":"電気分解は、電流を流して物質を分解する現象です。"}],"cva":0},
+            {"question":"水に溶かしたときに、電流を流す物質を何といいますか？","hint":"この物質は、水に溶けると「電離」します。","pF":[{"text":"電解質","Bt":true,"Lmb":"電解質は、水に溶けるとイオンに分かれ、電流を流す性質を持ちます。"},{"text":"非電解質","Bt":false,"Lmb":"非電解質は、水に溶かしても電流を流さない物質です。"},{"text":"導体","Bt":false,"Lmb":"導体は、電流を流す物質全般を指しますが、特に金属などに使われる言葉です。"},{"text":"不導体","Bt":false,"Lmb":"不導体は、電流を流さない物質です。"}],"cva":0},
+            {"question":"砂糖やエタノールのように、水に溶かしても電離せず、電流を流さない物質を何といいますか？","hint":"「電解質」の対義語です。","pF":[{"text":"非電解質","Bt":true,"Lmb":"非電解質は、水に溶かしても電流を流さない物質です。"},{"text":"電解質","Bt":false,"Lmb":"電解質は、水に溶けると電流を流す物質です。"},{"text":"導体","Bt":false,"Lmb":"導体は電流を流す物質です。"},{"text":"絶縁体","Bt":false,"Lmb":"絶縁体は電流を流しにくい物質ですが、水に溶けたときの性質を指す言葉ではありません。"}],"cva":0},
+            {"question":"食塩（塩化ナトリウム）が水に溶けて電離する様子を、化学反応式で表しなさい。","hint":"陽イオンと陰イオンに分かれることを、それぞれの化学式で示します。","pF":[{"text":"$NaCl \\to Na^+ + Cl^-$","Bt":true,"Lmb":"食塩は水中でナトリウムイオンと塩化物イオンに電離します。"},{"text":"$NaCl$","Bt":false,"Lmb":"これは電離前の食塩の化学式です。"},{"text":"$NaCl + H_2O \\to Na^+ + Cl^-$","Bt":false,"Lmb":"水は電離に関わりますが、式中には通常含めません。"},{"text":"$Na + Cl$","Bt":false,"Lmb":"これはナトリウム原子と塩素原子を表しており、イオンではありません。"}],"cva":0},
+            {"question":"原子が電子を失って陽イオンになる現象を何といいますか？","hint":"この言葉は、酸素と結びつく化学反応と同じ名称です。","pF":[{"text":"酸化","Bt":true,"Lmb":"酸化は、物質が酸素と結合する、または電子を失う化学反応を指します。電子を失って陽イオンになる現象は酸化に含まれます。"},{"text":"還元","Bt":false,"Lmb":"還元は、物質が酸素を失う、または電子を受け取る化学反応です。"},{"text":"中和","Bt":false,"Lmb":"中和は、酸とアルカリが混ざり合う現象です。"},{"text":"電気分解","Bt":false,"Lmb":"電気分解は、電流を流して物質を分解する現象です。"}],"cva":0},
+            {"question":"図の原子の構造において、プラスの電気を帯びたAの粒子を何といいますか？\n\n","hint":"この粒子は、原子核を構成する粒子の一つです。","pF":[{"text":"陽子","Bt":true,"Lmb":"陽子は、プラスの電気を帯びた粒子で、原子核を構成します。"},{"text":"電子","Bt":false,"Lmb":"電子はマイナスの電気を帯びています。"},{"text":"中性子","Bt":false,"Lmb":"中性子は電気を帯びていません。"},{"text":"原子核","Bt":false,"Lmb":"原子核は、陽子と中性子からできており、粒子そのものの名称ではありません。"}],"cva":0},
+            {"question":"図の原子の構造において、A（陽子）とB（中性子）からなる、中心部分Dを何といいますか？\n\n","hint":"原子の大部分の質量を占めている中心部分です。","pF":[{"text":"原子核","Bt":true,"Lmb":"原子の中心にある、陽子と中性子からなる部分を原子核といいます。"},{"text":"電子殻","Bt":false,"Lmb":"電子殻は、電子が周りを回る軌道を表すものです。"},{"text":"原子","Bt":false,"Lmb":"原子は、原子核と電子殻全体を指す言葉です。"},{"text":"陽イオン","Bt":false,"Lmb":"陽イオンは、電子を失ってプラスの電気を帯びた原子です。"}],"cva":0},
+            {"question":"原子がC（電子）を受け取ると、陽イオンと陰イオンのどちらになりますか？\n\n","hint":"電子はマイナスの電気を帯びています。","pF":[{"text":"陰イオン","Bt":true,"Lmb":"電子はマイナスの電気を帯びているため、原子が電子を受け取ると全体としてマイナスに帯電し、陰イオンになります。"},{"text":"陽イオン","Bt":false,"Lmb":"陽イオンは、電子を失ってプラスの電気を帯びた原子です。"},{"text":"中性子","Bt":false,"Lmb":"中性子は、原子核を構成する粒子です。"},{"text":"原子","Bt":false,"Lmb":"原子は電気的に中性です。"}],"cva":0},
+            {"question":"塩化物イオンの化学式を答えなさい。","hint":"塩素原子の記号に、どのような電荷を示す記号が付くかを考えましょう。","pF":[{"text":"$Cl^-$","Bt":true,"Lmb":"塩素原子が電子を1つ受け取ってできる陰イオンの化学式です。"},{"text":"$Cl$","Bt":false,"Lmb":"これは塩素原子の化学式です。"},{"text":"$Na^+$","Bt":false,"Lmb":"これはナトリウムイオンの化学式です。"},{"text":"$Cl_2$","Bt":false,"Lmb":"これは塩素分子の化学式です。"}],"cva":0},
+            {"question":"水素イオンの化学式を答えなさい。","hint":"酸性の水溶液に必ず含まれるイオンです。","pF":[{"text":"$H^+$","Bt":true,"Lmb":"水素原子が電子を1つ失ってできる陽イオンの化学式です。"},{"text":"$H_2$","Bt":false,"Lmb":"これは水素分子の化学式です。"},{"text":"$H^-$","Bt":false,"Lmb":"水素原子が電子を受け取ると、水素化物イオンになります。"},{"text":"$OH^-$","Bt":false,"Lmb":"これは水酸化物イオンの化学式です。"}],"cva":0},
+            {"question":"図のようなダニエル電池の実験で、亜鉛板と銅板のうち、電子を放出するのはどちらですか？\n\n","hint":"イオンになりやすい金属が電子を放出します。","pF":[{"text":"亜鉛板","Bt":true,"Lmb":"亜鉛は銅よりもイオンになりやすいため、亜鉛板で亜鉛原子が電子を放出して亜鉛イオンとなります。"},{"text":"銅板","Bt":false,"Lmb":"銅板は、外部から流れてきた電子を受け取ります。"},{"text":"両方","Bt":false,"Lmb":"電子を放出するのは亜鉛板のみです。"},{"text":"どちらでもない","Bt":false,"Lmb":"電池の仕組みは、電子の移動によって成り立っています。"}],"cva":0},
+            {"question":"上記の電池の実験で、時間が経つと質量が増えるのはどちらの金属板ですか？","hint":"銅板に何が付着しているかを考えてみましょう。","pF":[{"text":"銅板","Bt":true,"Lmb":"銅板では、水溶液中の銅イオンが電子を受け取って銅原子となり、銅板に付着するため、質量は増加します。"},{"text":"亜鉛板","Bt":false,"Lmb":"亜鉛板では、亜鉛原子がイオンになって水溶液に溶け出すため、質量は減少します。"},{"text":"両方","Bt":false,"Lmb":"一方の質量は減少し、もう一方の質量は増加します。"},{"text":"どちらでもない","Bt":false,"Lmb":"電子の移動に伴い、物質の移動も起こります。"}],"cva":0},
+            {"question":"上記の電池の実験で、亜鉛板で起こる化学変化を、化学式と電子の記号（$e^{-}$）を使って式で表しなさい。","hint":"亜鉛は、電子を放出してイオンになります。","pF":[{"text":"$Zn \\to Zn^{2+} + 2e^{-}$","Bt":true,"Lmb":"亜鉛原子は電子を2つ放出して亜鉛イオンとなり、水溶液中に溶け出します。"},{"text":"$Zn^{2+} + 2e^{-} \\to Zn$","Bt":false,"Lmb":"これは銅板側で起こる反応です。"},{"text":"$Zn + 2e^{-} \\to Zn^{2+}$","Bt":false,"Lmb":"亜鉛原子が電子を受け取るのではなく、放出する反応です。"},{"text":"$Zn \\to Zn^{+} + e^{-}$","Bt":false,"Lmb":"亜鉛イオンは2価の陽イオンです。"}],"cva":0},
+            {"question":"うすい塩酸に電流を流す実験で、陽極に集まる気体は何ですか？","hint":"塩酸は塩化水素が水に溶けたものです。塩化物イオンが移動する電極を考えてみましょう。","pF":[{"text":"塩素","Bt":true,"Lmb":"うすい塩酸の電気分解では、陽イオンである水素イオンが陰極に、陰イオンである塩化物イオンが陽極に移動し、塩化物イオンが電子を放出して塩素分子となります。"},{"text":"水素","Bt":false,"Lmb":"水素は陰極に集まります。"},{"text":"酸素","Bt":false,"Lmb":"酸素は、水が電気分解される際に陽極に発生する気体です。"},{"text":"窒素","Bt":false,"Lmb":"窒素は空気中に多く含まれますが、この実験では発生しません。"}],"cva":0},
+            {"question":"硫酸銅水溶液に炭素棒を入れて電気分解すると、陰極に付着する物質は何ですか？","hint":"陰極には、水溶液中の陽イオンが移動します。","pF":[{"text":"銅","Bt":true,"Lmb":"硫酸銅水溶液の電気分解では、陽イオンである銅イオンが陰極に移動し、電子を受け取って銅原子となって付着します。"},{"text":"水素","Bt":false,"Lmb":"水素は、銅イオンよりもイオンになりやすいため、陰極には付着しません。"},{"text":"酸素","Bt":false,"Lmb":"酸素は陽極で発生します。"},{"text":"硫酸","Bt":false,"Lmb":"硫酸は陰極に付着しません。"}],"cva":0},
+            {"question":"図のように、マグネシウム板、亜鉛板、銅板をそれぞれ硫酸マグネシウム水溶液、硫酸亜鉛水溶液、硫酸銅水溶液に入れた実験で、マグネシウム板に変化が起こった水溶液はどれですか？\n\n","hint":"金属がイオンになるには、水溶液中のイオンよりもイオンになりやすい必要があります。","pF":[{"text":"硫酸マグネシウム水溶液","Bt":false,"Lmb":"同じ種類のイオンと金属なので、変化は起こりません。"},{"text":"硫酸亜鉛水溶液","Bt":false,"Lmb":"マグネシウムは亜鉛よりもイオンになりやすいため、亜鉛板に変化は起こりませんが、マグネシウム板はそもそもこの水溶液に入っていません。"},{"text":"硫酸銅水溶液","Bt":false,"Lmb":"マグネシウム板は硫酸銅水溶液に入っていません。"},{"text":"この実験ではマグネシウム板に変化は起こらない","Bt":true,"Lmb":"マグネシウムは最もイオンになりやすい金属であり、硫酸マグネシウム水溶液中では、すでに安定したマグネシウムイオンとして存在しています。そのため、マグネシウム板はイオンに変化せず、変化は起こりません。"}],"cva":0},
+            {"question":"亜鉛板と銅板を硫酸銅水溶液に入れた場合、変化が起こるのはどちらの金属板ですか？","hint":"イオンになりやすい方の金属が変化します。","pF":[{"text":"亜鉛板","Bt":true,"Lmb":"亜鉛は銅よりもイオンになりやすいので、亜鉛板がイオンに変化し、亜鉛板の表面に銅が析出します。"},{"text":"銅板","Bt":false,"Lmb":"銅板はすでに銅イオンが溶けている水溶液中にあるため、変化は起こりません。"},{"text":"両方","Bt":false,"Lmb":"亜鉛板にのみ変化が起こります。"},{"text":"どちらでもない","Bt":false,"Lmb":"イオン化傾向の差により、変化が起こります。"}],"cva":0},
+            {"question":"マグネシウム、亜鉛、銅の3種類の金属のイオンになりやすい順を、左から右へ並べなさい。","hint":"金属のイオン化傾向は、電池の仕組みを考える上で重要です。","pF":[{"text":"銅 > 亜鉛 > マグネシウム","Bt":false,"Lmb":"これはイオンになりにくい順です。"},{"text":"マグネシウム > 亜鉛 > 銅","Bt":true,"Lmb":"マグネシウムが最もイオンになりやすく、次いで亜鉛、最後に銅となります。"},{"text":"亜鉛 > マグネシウム > 銅","Bt":false,"Lmb":"マグネシウムは亜鉛よりもイオンになりやすいです。"},{"text":"銅 > マグネシウム > 亜鉛","Bt":false,"Lmb":"この順序は正しくありません。"}],"cva":0},
+            {"question":"図のように、金属板（X）を水溶液中の金属イオン（$Y^{2+}$）に入れると変化が起こりました。このとき、金属Xと金属Yのどちらがイオンになりやすいといえますか？\n\n","hint":"変化が起こるということは、一方の金属がもう一方の金属よりもイオンになりやすいということです。","pF":[{"text":"金属X","Bt":true,"Lmb":"金属Xがイオンになり、その際に放出した電子を金属Yのイオンが受け取って原子になることで、変化が起こります。"},{"text":"金属Y","Bt":false,"Lmb":"金属Yのイオンが電子を受け取って原子に戻っているので、YはXよりもイオンになりにくい金属です。"},{"text":"両方","Bt":false,"Lmb":"イオン化傾向には優劣があります。"},{"text":"どちらでもない","Bt":false,"Lmb":"化学変化が起こっているので、イオン化傾向の差があります。"}],"cva":0},
+            {"question":"金属板（X）と水溶液中の金属イオン（$Y^{2+}$）が反応する様子を、化学式と電子の記号（$e^{-}$）を使って化学反応式で表しなさい。","hint":"この反応は、酸化還元反応の一種です。","pF":[{"text":"$X + Y^{2+} \\to X^{2+} + Y$","Bt":true,"Lmb":"金属Xが電子を2つ放出して陽イオンになり、金属Yの陽イオンがその電子を受け取って原子に戻る反応です。"},{"text":"$X^{2+} + Y \\to X + Y^{2+}$","Bt":false,"Lmb":"これは逆の反応です。"},{"text":"$X + Y \\to XY$","Bt":false,"Lmb":"これは化合物が形成される反応式です。"},{"text":"$X + Y^{2+} + 2e^{-} \\to X^{2+} + Y + 2e^{-}$","Bt":false,"Lmb":"電子は反応中に移動するため、全体として式には含めません。"}],"cva":0},
+            {"question":"うすい塩酸にBTB溶液を入れると、何色に変化しますか？","hint":"酸性の水溶液にBTB溶液を入れると、色の変化は…？","pF":[{"text":"黄色","Bt":true,"Lmb":"BTB溶液は、酸性を示す水溶液では黄色に変化します。"},{"text":"青色","Bt":false,"Lmb":"BTB溶液は、アルカリ性を示す水溶液では青色に変化します。"},{"text":"緑色","Bt":false,"Lmb":"BTB溶液は、中性を示す水溶液では緑色に変化します。"},{"text":"無色","Bt":false,"Lmb":"BTB溶液は色が変わる指示薬です。"}],"cva":0},
+            {"question":"塩酸、硫酸、炭酸水のように、水に溶けると必ず水素イオン（$H^{+}$）を生じる物質を何といいますか？","hint":"この物質は、すっぱい味の元になることが多いです。","pF":[{"text":"酸","Bt":true,"Lmb":"水に溶けて水素イオンを生じる物質を酸といいます。"},{"text":"アルカリ","Bt":false,"Lmb":"水に溶けて水酸化物イオンを生じる物質をアルカリといいます。"},{"text":"塩基","Bt":false,"Lmb":"水に溶けて水酸化物イオンを生じる物質を塩基といいます。"},{"text":"中性","Bt":false,"Lmb":"中性は、水素イオンと水酸化物イオンの数が等しい状態を指します。"}],"cva":0},
+            {"question":"うすい水酸化ナトリウム水溶液のように、水に溶けると必ず水酸化物イオン（$OH^{-}$）を生じる物質を何といいますか？","hint":"この物質は、触るとぬるぬるとした感触があります。","pF":[{"text":"アルカリ","Bt":true,"Lmb":"水に溶けて水酸化物イオンを生じる物質をアルカリといいます。"},{"text":"酸","Bt":false,"Lmb":"水に溶けて水素イオンを生じる物質を酸といいます。"},{"text":"塩","Bt":false,"Lmb":"塩は、酸とアルカリが反応してできる物質です。"},{"text":"中性","Bt":false,"Lmb":"中性は、水素イオンと水酸化物イオンの数が等しい状態を指します。"}],"cva":0},
+            {"question":"水溶液の性質を調べるときに使う、赤色リトマス紙を青色に変える性質を持つ水溶液は、何性ですか？","hint":"石けん水や重曹水などがこの性質を持ちます。","pF":[{"text":"アルカリ性","Bt":true,"Lmb":"アルカリ性の水溶液は、赤色リトマス紙を青色に変える性質を持ちます。"},{"text":"酸性","Bt":false,"Lmb":"酸性の水溶液は、青色リトマス紙を赤色に変えます。"},{"text":"中性","Bt":false,"Lmb":"中性の水溶液は、リトマス紙の色を変化させません。"},{"text":"塩基性","Bt":false,"Lmb":"塩基性もアルカリ性と同じ性質を示しますが、アルカリ性の方が水溶液の性質を示す言葉としてより一般的です。"}],"cva":0},
+            {"question":"酸性の水溶液とアルカリ性の水溶液を混ぜ合わせると、それぞれの性質が打ち消し合って中性になる反応を何といいますか？","hint":"この反応によって、水と塩が生成されます。","pF":[{"text":"中和","Bt":true,"Lmb":"酸とアルカリが互いの性質を打ち消し合う反応を中和といいます。"},{"text":"電離","Bt":false,"Lmb":"電離は、物質が水に溶けてイオンに分かれる現象です。"},{"text":"溶解","Bt":false,"Lmb":"溶解は、物質が溶媒に溶ける現象全般を指します。"},{"text":"電気分解","Bt":false,"Lmb":"電気分解は、電流を流して物質を分解する現象です。"}],"cva":0}
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+        const submitBtn = document.getElementById('submit-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const scoreElement = document.getElementById('score');
+        const reviewArea = document.getElementById('review-area');
+
+        function renderQuiz() {
+            quizContainer.innerHTML = '';
+            quizData.forEach((q, index) => {
+                const questionBox = document.createElement('div');
+                questionBox.classList.add('question-box');
+                questionBox.setAttribute('data-index', index);
+
+                const questionText = document.createElement('div');
+                questionText.classList.add('question-text');
+                questionText.innerHTML = `${index + 1}. ${q.question}`;
+                questionBox.appendChild(questionText);
+
+                const optionGroup = document.createElement('div');
+                optionGroup.classList.add('space-y-2');
+                q.pF.forEach((option, optionIndex) => {
+                    const optionId = `q${index}-option${optionIndex}`;
+                    const label = document.createElement('label');
+                    label.classList.add('option-label');
+                    label.setAttribute('for', optionId);
+
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question${index}`;
+                    input.id = optionId;
+                    input.value = option.text;
+
+                    const optionSpan = document.createElement('span');
+                    optionSpan.innerHTML = option.text;
+
+                    label.appendChild(input);
+                    label.appendChild(optionSpan);
+                    optionGroup.appendChild(label);
+                });
+                questionBox.appendChild(optionGroup);
+
+                quizContainer.appendChild(questionBox);
+            });
+            // MathJaxのレンダリングが完了するのを待つ
+            MathJax.typesetPromise();
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            quizData.forEach((q, index) => {
+                const questionBox = document.querySelector(`[data-index="${index}"]`);
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                const allOptions = questionBox.querySelectorAll('input[type="radio"]');
+
+                const rationale = document.createElement('div');
+                rationale.classList.add('rationale');
+
+                let isCorrect = false;
+                if (selectedOption) {
+                    const selectedOptionData = q.pF.find(option => option.text === selectedOption.value);
+                    if (selectedOptionData && selectedOptionData.Bt) {
+                        score++;
+                        isCorrect = true;
+                    }
+                }
+
+                allOptions.forEach(option => {
+                    const optionData = q.pF.find(opt => opt.text === option.value);
+                    const label = option.parentNode;
+                    label.style.pointerEvents = 'none';
+
+                    if (optionData.Bt) {
+                        label.classList.add('correct-answer');
+                        rationale.innerHTML += `<strong>正解:</strong> ${optionData.text}<br><strong>解説:</strong> ${optionData.Lmb}`;
+                    } else if (selectedOption && option.value === selectedOption.value) {
+                         if (!isCorrect) {
+                             label.classList.add('incorrect-answer');
+                             rationale.innerHTML += `<strong>不正解:</strong> ${optionData.text}`;
+                         }
+                    }
+                });
+
+                questionBox.appendChild(rationale);
+            });
+
+            submitBtn.classList.add('hidden');
+            resetBtn.classList.remove('hidden');
+            resultsContainer.classList.remove('hidden');
+            scoreElement.innerHTML = `あなたのスコア: ${score} / ${quizData.length}`;
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            MathJax.typesetPromise();
+        }
+
+        function resetQuiz() {
+            resultsContainer.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+            resetBtn.classList.add('hidden');
+            renderQuiz();
+        }
+
+        submitBtn.addEventListener('click', checkAnswers);
+        resetBtn.addEventListener('click', resetQuiz);
+
+        // ページの読み込み完了後にクイズをレンダリング
+        window.onload = () => {
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>
