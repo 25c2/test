@@ -6,22 +6,42 @@
   <!-- Bulma 1.0.4 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.4/css/bulma.min.css">
   <style>
-    body {
-      padding: 20px;
-    }
-    select {
-      max-width: 200px;
-    }
-    table th, table td {
-      text-align: center;
-    }
-    td.note {
-      text-align: left;
-    }
-    h2 {
-      margin-top: 20px;
-    }
-  </style>
+  body {
+    padding: 20px;
+  }
+
+  select {
+    max-width: 200px;
+  }
+
+  table {
+    table-layout: fixed; /* 列幅を固定にして整える */
+    width: 100%;
+  }
+
+  table th, table td {
+    text-align: center;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 長すぎる場合は「…」で省略 */
+    white-space: nowrap;
+  }
+
+  th.period, td.period { width: 60px; }
+  th.subject, td.subject { width: 120px; }
+  th.topic, td.topic { width: 150px; }
+  th.note, td.note { 
+    width: auto; /* 残り幅を使用 */
+    text-align: left;
+    white-space: normal; /* 折り返し有効 */
+    word-break: break-word;
+    padding-left: 10px;
+  }
+
+  h2 {
+    margin-top: 20px;
+  }
+</style>
 </head>
 <body>
   <section class="section">
@@ -44,6 +64,7 @@
   <script>
     let scheduleData = {};
 
+    // 日付フォーマット関数: "20250916" -> "2025年9月16日"
     function formatDate(dateStr) {
       const year = dateStr.slice(0, 4);
       const month = parseInt(dateStr.slice(4, 6), 10);
@@ -90,13 +111,14 @@
 
       const table = document.createElement("table");
       table.className = "table is-striped is-hoverable is-fullwidth";
+      
       const thead = document.createElement("thead");
       thead.innerHTML = `
         <tr>
-          <th>時限</th>
-          <th>教科</th>
-          <th>単元</th>
-          <th>持ち物</th>
+          <th class="period">時限</th>
+          <th class="subject">教科</th>
+          <th class="topic">単元</th>
+          <th class="note">持ち物</th>
         </tr>
       `;
       table.appendChild(thead);
@@ -105,9 +127,9 @@
       dayData.forEach(item => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${item.period}</td>
-          <td>${item.subject}</td>
-          <td>${item.topic}</td>
+          <td class="period">${item.period}</td>
+          <td class="subject">${item.subject}</td>
+          <td class="topic">${item.topic}</td>
           <td class="note">${item.note}</td>
         `;
         tbody.appendChild(tr);
