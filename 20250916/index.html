@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>時間割表</title>
+  <!-- Bulma 1.0.4 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.4/css/bulma.min.css">
+  <style>
+    body {
+      padding: 20px;
+    }
+    select {
+      max-width: 200px;
+    }
+    table th, table td {
+      text-align: center;
+    }
+    td.note {
+      text-align: left;
+    }
+    h2 {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title is-3">時間割表</h1>
+
+      <div class="field">
+        <label class="label" for="dateSelect">日付を選択</label>
+        <div class="control">
+          <div class="select">
+            <select id="dateSelect"></select>
+          </div>
+        </div>
+      </div>
+
+      <div id="schedule"></div>
+    </div>
+  </section>
+
+  <script>
+    let scheduleData = {};
+
+    function formatDate(dateStr) {
+      const year = dateStr.slice(0, 4);
+      const month = parseInt(dateStr.slice(4, 6), 10);
+      const day = parseInt(dateStr.slice(6, 8), 10);
+      return `${year}年${month}月${day}日`;
+    }
+
+    async function loadSchedule() {
+      const response = await fetch("j.json");
+      scheduleData = await response.json();
+
+      const dateSelect = document.getElementById("dateSelect");
+      const dates = Object.keys(scheduleData);
+
+      dateSelect.innerHTML = "";
+      dates.forEach(date => {
+        const option = document.createElement("option");
+        option.value = date;
+        option.textContent = formatDate(date);
+        dateSelect.appendChild(option);
+      });
+
+      if (dates.length > 0) {
+        dateSelect.value = dates[0];
+        renderTable(dates[0]);
+      }
+
+      dateSelect.addEventListener("change", (e) => {
+        renderTable(e.target.value);
+      });
+    }
+
+    function renderTable(date) {
+      const container = document.getElementById("schedule");
+      container.innerHTML = "";
+
+      const dayData = scheduleData[date];
+      if (!dayData) return;
+
+      const h2 = document.createElement("h2");
+      h2.className = "title is-4";
+      h2.textContent = formatDate(date);
+      container.appendChild(h2);
+
+      const table = document.createElement("table");
+      table.className = "table is-striped is-hoverable is-fullwidth";
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr>
+          <th>時限</th>
+          <th>教科</th>
+          <th>単元</th>
+          <th>持ち物</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      dayData.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.period}</td>
+          <td>${item.subject}</td>
+          <td>${item.topic}</td>
+          <td class="note">${item.note}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    loadSchedule();
+  </script>
+</body>
+</html>
