@@ -3,8 +3,8 @@
     { "period": 1, "subject": "数学", "topic": "", "note": "" },
     { "period": 2, "subject": "理科", "topic": "中和", "note": "教科書 ノート ファイル タブレット" },
     { "period": 3, "subject": "美術", "topic": "てん刻", "note": "筆記用具" },
-    { "period": 4, "subject": "英語", "topic": "", "note": "" },
-    { "period": 5, "subject": "体育", "topic": "", "note": "" },
+    { "period": 4, "subject": "英語", "topic": "Unit4", "note": "ワーク ファイル 教科書 ノート" },
+    { "period": 5, "subject": "体育", "topic": "バレー", "note": "" },
     { "period": 6, "subject": "総合", "topic": "人権2", "note": "" }
     ]
   }
