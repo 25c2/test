@@ -8,11 +8,11 @@
     { "period": 6, "subject": "体育", "topic": "バスケットボール", "note": "教科書 ノート" }
     ],
   "20250917": [
-    { "period": 1, "subject": "数学", "topic": "2次方程式", "note": "教科書 ノート" },
-    { "period": 2, "subject": "国語", "topic": "漢文", "note": "教科書 ノート" },
-    { "period": 3, "subject": "理科", "topic": "物理", "note": "教科書 ノート 第二理科室" },
-    { "period": 4, "subject": "社会", "topic": "地理", "note": "教科書 ノート" },
-    { "period": 5, "subject": "英語", "topic": "動名詞", "note": "プリント ノート" },
-    { "period": 6, "subject": "音楽", "topic": "合唱", "note": "教科書 ノート" }
+    { "period": 1, "subject": "数学", "topic": "", "note": "" },
+    { "period": 2, "subject": "理科", "topic": "中和", "note": "教科書 ノート ファイル タブレット" },
+    { "period": 3, "subject": "美術", "topic": "てん刻", "note": "筆記用具" },
+    { "period": 4, "subject": "英語", "topic": "", "note": "" },
+    { "period": 5, "subject": "体育", "topic": "", "note": "" },
+    { "period": 6, "subject": "総合", "topic": "人権2", "note": "" }
     ]
-}
+  }
